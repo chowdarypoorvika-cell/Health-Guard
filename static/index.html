@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cybher | Healthcare Security Simulation</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;500;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-shield-virus"></i>
+                <span>Cybher</span>
+            </div>
+            <ul class="nav-links">
+                <li class="active" onclick="switchTab('dashboard')">
+                    <i class="fa-solid fa-chart-line"></i> Dashboard
+                </li>
+                <li onclick="switchTab('attacks')">
+                    <i class="fa-solid fa-bug"></i> Attack Hub
+                </li>
+                <li onclick="switchTab('federated')">
+                    <i class="fa-solid fa-network-wired"></i> Federated Lab
+                </li>
+                <li onclick="switchTab('analytics')">
+                    <i class="fa-solid fa-chart-pie"></i> Analytics
+                </li>
+                <li onclick="switchTab('settings')">
+                    <i class="fa-solid fa-gear"></i> Settings
+                </li>
+            </ul>
+            
+            <!-- Patient Selector -->
+            <div class="patient-selector">
+                <h4><i class="fa-solid fa-user-injured"></i> Active Patient</h4>
+                <select id="patient-select" onchange="switchPatient(this.value)">
+                    <option value="P001">John Doe (Cardiac)</option>
+                    <option value="P002">Jane Smith (Post-Surgery)</option>
+                    <option value="P003">Robert Chen (ICU)</option>
+                </select>
+            </div>
+            
+            <div class="system-status">
+                <div class="status-item">
+                    <span>CPU</span>
+                    <div class="progress-bar">
+                        <div class="fill" id="cpu-bar" style="width: 30%"></div>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <span>RAM</span>
+                    <div class="progress-bar">
+                        <div class="fill" id="ram-bar" style="width: 45%"></div>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <span>Network</span>
+                    <div class="progress-bar">
+                        <div class="fill network" id="network-bar" style="width: 25%"></div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header>
+                <div class="header-title">
+                    <h2 id="page-title">Live Monitoring</h2>
+                    <span class="live-badge"><span class="blink">●</span> LIVE STREAM</span>
+                </div>
+                <div class="header-actions">
+                    <div class="threat-counter" id="threat-counter">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span id="threats-blocked">0</span> Threats Blocked
+                    </div>
+                    <div class="model-accuracy" id="model-accuracy-badge">
+                        <i class="fa-solid fa-brain"></i>
+                        <span id="accuracy-value">--</span>% Accuracy
+                    </div>
+                    <div class="user-profile">
+                        <span>Admin Access</span>
+                        <div class="avatar"><i class="fa-solid fa-user-doctor"></i></div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard View -->
+            <div id="view-dashboard" class="view-section active">
+                <!-- Threat Alert Banner -->
+                <div class="threat-banner" id="threat-banner" style="display: none;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span id="threat-banner-text">Active threat detected!</span>
+                    <button onclick="dismissThreatBanner()" class="btn-dismiss">Dismiss</button>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card glass-panel" id="card-hr">
+                        <div class="icon-box heart"><i class="fa-solid fa-heart-pulse"></i></div>
+                        <div class="stat-info">
+                            <h3>Heart Rate</h3>
+                            <div class="value"><span id="metric-hr">--</span> <small>BPM</small></div>
+                        </div>
+                        <div class="stat-trend" id="trend-hr">
+                            <i class="fa-solid fa-arrow-trend-up"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel" id="card-temp">
+                        <div class="icon-box temp"><i class="fa-solid fa-temperature-half"></i></div>
+                        <div class="stat-info">
+                            <h3>Temperature</h3>
+                            <div class="value"><span id="metric-temp">--</span> <small>°C</small></div>
+                        </div>
+                        <div class="stat-trend" id="trend-temp">
+                            <i class="fa-solid fa-minus"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel" id="card-spo2">
+                        <div class="icon-box spo2"><i class="fa-solid fa-lungs"></i></div>
+                        <div class="stat-info">
+                            <h3>SpO2</h3>
+                            <div class="value"><span id="metric-spo2">--</span> <small>%</small></div>
+                        </div>
+                        <div class="stat-trend" id="trend-spo2">
+                            <i class="fa-solid fa-minus"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel" id="card-bp">
+                        <div class="icon-box bp"><i class="fa-solid fa-droplet"></i></div>
+                        <div class="stat-info">
+                            <h3>Blood Pressure</h3>
+                            <div class="value"><span id="metric-bp">--/--</span> <small>mmHg</small></div>
+                        </div>
+                        <div class="stat-trend" id="trend-bp">
+                            <i class="fa-solid fa-minus"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel" id="card-resp">
+                        <div class="icon-box resp"><i class="fa-solid fa-wind"></i></div>
+                        <div class="stat-info">
+                            <h3>Respiratory Rate</h3>
+                            <div class="value"><span id="metric-resp">--</span> <small>/min</small></div>
+                        </div>
+                        <div class="stat-trend" id="trend-resp">
+                            <i class="fa-solid fa-minus"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel threat-card" id="card-status">
+                        <div class="icon-box status-ok"><i class="fa-solid fa-shield-check" id="status-icon"></i></div>
+                        <div class="stat-info">
+                            <h3>Security Status</h3>
+                            <div class="value status-text" id="security-status">SECURE</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="main-chart-section glass-panel">
+                    <div class="chart-header">
+                        <h3><i class="fa-solid fa-wave-square"></i> Real-time Patient Vitals</h3>
+                        <div class="chart-controls">
+                            <button class="btn-small" onclick="toggleChartType()">
+                                <i class="fa-solid fa-chart-area"></i>
+                            </button>
+                            <button class="btn-small" onclick="clearChart()">
+                                <i class="fa-solid fa-eraser"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <canvas id="mainChart"></canvas>
+                </div>
+
+                <div class="bottom-panels">
+                    <div class="logs-section glass-panel">
+                        <h3><i class="fa-solid fa-triangle-exclamation"></i> Security Event Log</h3>
+                        <div class="log-feed" id="security-log">
+                            <div class="empty-log">System Secure. No anomalies detected.</div>
+                        </div>
+                    </div>
+                    <div class="quick-stats glass-panel">
+                        <h3><i class="fa-solid fa-chart-simple"></i> Quick Stats</h3>
+                        <div class="quick-stat-item">
+                            <span>Total Packets</span>
+                            <strong id="stat-packets">0</strong>
+                        </div>
+                        <div class="quick-stat-item">
+                            <span>Anomalies Detected</span>
+                            <strong id="stat-anomalies">0</strong>
+                        </div>
+                        <div class="quick-stat-item">
+                            <span>Detection Rate</span>
+                            <strong id="stat-rate">0%</strong>
+                        </div>
+                        <div class="quick-stat-item">
+                            <span>Session Uptime</span>
+                            <strong id="stat-uptime">0:00</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attack Hub View -->
+            <div id="view-attacks" class="view-section">
+                <div class="attack-header">
+                    <p class="attack-warning"><i class="fa-solid fa-radiation"></i> Warning: These simulations inject malicious data patterns for testing purposes only.</p>
+                </div>
+                <div class="hub-grid">
+                    <div class="attack-card glass-panel rush" data-attack="spike">
+                        <div class="attack-icon"><i class="fa-solid fa-bolt"></i></div>
+                        <h3>Sensor Spike</h3>
+                        <p>Inject sudden high-value spikes to simulate voltage surges or spoofing.</p>
+                        <div class="attack-severity high">High Severity</div>
+                        <button class="btn-attack" onclick="injectAttack('spike')">
+                            <i class="fa-solid fa-play"></i> Inject Attack
+                        </button>
+                    </div>
+                    <div class="attack-card glass-panel flat" data-attack="flatline">
+                        <div class="attack-icon"><i class="fa-solid fa-skull-crossbones"></i></div>
+                        <h3>Flatline DoS</h3>
+                        <p>Simulate total sensor failure or denial of service (DoS).</p>
+                        <div class="attack-severity critical">Critical</div>
+                        <button class="btn-attack" onclick="injectAttack('flatline')">
+                            <i class="fa-solid fa-play"></i> Inject Attack
+                        </button>
+                    </div>
+                    <div class="attack-card glass-panel noise" data-attack="noise">
+                        <div class="attack-icon"><i class="fa-solid fa-wave-square"></i></div>
+                        <h3>Signal Noise</h3>
+                        <p>Inject high-variance noise to degrade data integrity.</p>
+                        <div class="attack-severity high">High Severity</div>
+                        <button class="btn-attack" onclick="injectAttack('noise')">
+                            <i class="fa-solid fa-play"></i> Inject Attack
+                        </button>
+                    </div>
+                    <div class="attack-card glass-panel spoof" data-attack="spoof">
+                        <div class="attack-icon"><i class="fa-solid fa-user-secret"></i></div>
+                        <h3>Identity Spoof</h3>
+                        <p>Inject rigid, low-variance data to mimic fake vitals.</p>
+                        <div class="attack-severity medium">Medium</div>
+                        <button class="btn-attack" onclick="injectAttack('spoof')">
+                            <i class="fa-solid fa-play"></i> Inject Attack
+                        </button>
+                    </div>
+                    <div class="attack-card glass-panel replay" data-attack="replay">
+                        <div class="attack-icon"><i class="fa-solid fa-rotate"></i></div>
+                        <h3>Replay Attack</h3>
+                        <p>Replay captured data packets to bypass authentication.</p>
+                        <div class="attack-severity medium">Medium</div>
+                        <button class="btn-attack" onclick="injectAttack('replay')">
+                            <i class="fa-solid fa-play"></i> Inject Attack
+                        </button>
+                    </div>
+                    <div class="attack-card glass-panel mitm" data-attack="mitm">
+                        <div class="attack-icon"><i class="fa-solid fa-mask"></i></div>
+                        <h3>Man-in-the-Middle</h3>
+                        <p>Intercept and subtly modify data in transit.</p>
+                        <div class="attack-severity high">High Severity</div>
+                        <button class="btn-attack" onclick="injectAttack('mitm')">
+                            <i class="fa-solid fa-play"></i> Inject Attack
+                        </button>
+                    </div>
+                </div>
+                <div class="attack-controls glass-panel">
+                    <button class="btn-danger" onclick="clearAttack()">
+                        <i class="fa-solid fa-stop"></i> Stop All Attacks
+                    </button>
+                </div>
+            </div>
+
+            <!-- Federated Lab View -->
+            <div id="view-federated" class="view-section">
+                <div class="fl-container glass-panel">
+                    <div class="fl-header">
+                        <div class="fl-intro">
+                            <h3><i class="fa-solid fa-network-wired"></i> Federated Learning Simulation</h3>
+                            <p>Train a global anomaly detection model across distributed hospital nodes without sharing raw patient data. This preserves privacy while enabling collaborative learning.</p>
+                        </div>
+                        <div class="fl-controls">
+                            <label>Training Rounds:
+                                <input type="number" id="fl-rounds" value="5" min="1" max="20">
+                            </label>
+                            <button id="start-fl-btn" class="btn-primary" onclick="startFederatedLearning()">
+                                <i class="fa-solid fa-play"></i> Start Training
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="fl-visualizer" id="fl-visualizer">
+                        <div class="placeholder-text">
+                            <i class="fa-solid fa-circle-nodes"></i>
+                            <p>Waiting to start federated learning simulation...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="fl-chart-container">
+                        <canvas id="flChart"></canvas>
+                    </div>
+
+                    <div class="nodes-grid">
+                        <div class="node-card" id="node-a">
+                            <div class="node-icon"><i class="fa-solid fa-hospital"></i></div>
+                            <h4>Hospital A</h4>
+                            <div class="node-status" id="status-node-a">Idle</div>
+                            <div class="node-accuracy" id="acc-node-a">--</div>
+                        </div>
+                        <div class="node-card center-node" id="node-global">
+                            <div class="node-icon"><i class="fa-solid fa-server"></i></div>
+                            <h4>Global Model</h4>
+                            <div class="node-status" id="status-global">Waiting</div>
+                            <div class="node-accuracy" id="acc-global">--</div>
+                        </div>
+                        <div class="node-card" id="node-b">
+                            <div class="node-icon"><i class="fa-solid fa-hospital-user"></i></div>
+                            <h4>Hospital B</h4>
+                            <div class="node-status" id="status-node-b">Idle</div>
+                            <div class="node-accuracy" id="acc-node-b">--</div>
+                        </div>
+                    </div>
+                    
+                    <div class="fl-explanation">
+                        <h4><i class="fa-solid fa-lightbulb"></i> How It Works</h4>
+                        <div class="explanation-steps">
+                            <div class="step">
+                                <span class="step-num">1</span>
+                                <p>Each hospital trains locally on their private patient data</p>
+                            </div>
+                            <div class="step">
+                                <span class="step-num">2</span>
+                                <p>Only model weights (not raw data) are sent to the central server</p>
+                            </div>
+                            <div class="step">
+                                <span class="step-num">3</span>
+                                <p>Weights are averaged to create an improved global model</p>
+                            </div>
+                            <div class="step">
+                                <span class="step-num">4</span>
+                                <p>The global model is distributed back to all hospitals</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics View -->
+            <div id="view-analytics" class="view-section">
+                <div class="analytics-grid">
+                    <div class="analytics-card glass-panel">
+                        <h3><i class="fa-solid fa-chart-pie"></i> Threat Distribution</h3>
+                        <canvas id="threatPieChart"></canvas>
+                    </div>
+                    <div class="analytics-card glass-panel">
+                        <h3><i class="fa-solid fa-chart-bar"></i> Detection Timeline</h3>
+                        <canvas id="timelineChart"></canvas>
+                    </div>
+                    <div class="analytics-card wide glass-panel">
+                        <h3><i class="fa-solid fa-table"></i> Threat Intelligence Summary</h3>
+                        <div class="intel-grid" id="intel-grid">
+                            <div class="intel-item">
+                                <div class="intel-value" id="intel-total">0</div>
+                                <div class="intel-label">Total Threats</div>
+                            </div>
+                            <div class="intel-item">
+                                <div class="intel-value" id="intel-detected">0</div>
+                                <div class="intel-label">Detected</div>
+                            </div>
+                            <div class="intel-item">
+                                <div class="intel-value" id="intel-blocked">0</div>
+                                <div class="intel-label">Blocked</div>
+                            </div>
+                            <div class="intel-item">
+                                <div class="intel-value" id="intel-rate">0%</div>
+                                <div class="intel-label">Detection Rate</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings View -->
+            <div id="view-settings" class="view-section">
+                <div class="settings-grid">
+                    <div class="settings-card glass-panel">
+                        <h3><i class="fa-solid fa-brain"></i> Model Settings</h3>
+                        <div class="setting-item">
+                            <label>Current Accuracy</label>
+                            <div class="setting-value" id="setting-accuracy">--</div>
+                        </div>
+                        <div class="setting-item">
+                            <label>Last Retrained</label>
+                            <div class="setting-value" id="setting-retrain">Never</div>
+                        </div>
+                        <button class="btn-primary" onclick="retrainModel()">
+                            <i class="fa-solid fa-rotate"></i> Retrain Model
+                        </button>
+                    </div>
+                    <div class="settings-card glass-panel">
+                        <h3><i class="fa-solid fa-bell"></i> Notifications</h3>
+                        <div class="setting-item toggle-item">
+                            <label>Sound Alerts</label>
+                            <label class="switch">
+                                <input type="checkbox" id="sound-toggle" checked onchange="toggleSound()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item toggle-item">
+                            <label>Desktop Notifications</label>
+                            <label class="switch">
+                                <input type="checkbox" id="notif-toggle" onchange="toggleNotifications()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item toggle-item">
+                            <label>Auto-block Threats</label>
+                            <label class="switch">
+                                <input type="checkbox" id="autoblock-toggle" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="settings-card glass-panel">
+                        <h3><i class="fa-solid fa-clock"></i> Stream Settings</h3>
+                        <div class="setting-item">
+                            <label>Update Interval (ms)</label>
+                            <input type="range" id="interval-slider" min="500" max="3000" value="1000" 
+                                   oninput="updateInterval(this.value)">
+                            <span id="interval-value">1000ms</span>
+                        </div>
+                        <div class="setting-item">
+                            <label>Chart History (points)</label>
+                            <input type="range" id="history-slider" min="20" max="100" value="50"
+                                   oninput="updateHistory(this.value)">
+                            <span id="history-value">50</span>
+                        </div>
+                    </div>
+                    <div class="settings-card glass-panel">
+                        <h3><i class="fa-solid fa-info-circle"></i> About</h3>
+                        <div class="about-info">
+                            <p><strong>Cybher</strong> - Healthcare IoT Security Platform</p>
+                            <p>Version 2.0.0</p>
+                            <p>A simulation platform for detecting cyber threats in healthcare IoT systems using machine learning and federated learning.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+    
+    <!-- Audio for alerts -->
+    <audio id="alert-sound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2Onp2ZkH1wZWJxgpOdnZiNfG9mZ3WFk5qYkYV3bGZod4WQl5WPgnVsaGt5hY+UkYx/c21rbHqEjpGOiX5zbm1ufYWNj4uGe3JubXB+hYuMiYN4cG9vcX6EiYqHgndwcHFzf4SHiIV/dXFxcnR/g4aGg391cnJzdX+ChYWCfnVzc3R2f4KEg4B8dXR0dXh/gYKBfnt1dXV2eX+AgH98d3Z2dnh6fn9+fHl3d3d4ent9fXx6eHh4eHl6e3t7enl5eXl5ent7e3p5eXl5eXp6enp5eXl5eXl6enp6eXl5eXl5enp6enl5eXl5eXp6enp6eXl5eXl5enp6enl5eXl5eXp6enp6eXl5eXl5enp6enl5eQ==" type="audio/wav">
+    </audio>
+    
+    <script src="/static/script.js"></script>
+</body>
+
+</html>
